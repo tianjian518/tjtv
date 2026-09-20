@@ -1,0 +1,39 @@
+{
+  "name": "tjtv 内置源",
+  "version": 2,
+  "updated": "2026-09-20",
+  "note": "本文件由 scripts/probe.py 实测筛选得出，仅收录能搜到内容且能拿到 m3u8 直链的采集站。源会失效，建议定期重跑体检。",
+  "sources": [
+    {
+      "name": "无尽",
+      "url": "https://api.wujinapi.com/api.php/provide/vod",
+      "key": "builtin_wujin",
+      "builtin": true
+    },
+    {
+      "name": "魔都",
+      "url": "https://caiji.moduapi.cc/api.php/provide/vod",
+      "key": "builtin_modu",
+      "builtin": true
+    },
+    {
+      "name": "百度",
+      "url": "https://api.apibdzy.com/api.php/provide/vod",
+      "key": "builtin_baidu",
+      "builtin": true
+    },
+    {
+      "name": "飘零",
+      "url": "https://p2100.net/api.php/provide/vod",
+      "key": "builtin_piaoling",
+      "builtin": true
+    },
+    {
+      "name": "最大",
+      "url": "http://zuidazy.me/api.php/provide/vod",
+      "key": "builtin_zuidazy",
+      "builtin": true
+    }
+  ],
+  "liveSources": []
+}

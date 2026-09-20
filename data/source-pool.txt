@@ -1,0 +1,54 @@
+# tjtv 候选源池
+# 每行格式：名称|接口地址
+# 说明：
+#   - 这个池子是「候选」不是「启用」，auto_update.py 会定期从池里筛出活的补进 tjtv
+#   - 带 # 的行会被忽略，可以随时注释掉失效的
+#   - 想加新源直接往下面追加，格式照抄
+#
+# 最后整理时间：2026-09-20
+
+# ========== 主流大站（更新快、资源全）==========
+无尽|https://api.wujinapi.com/api.php/provide/vod
+魔都|https://caiji.moduapi.cc/api.php/provide/vod
+百度|https://api.apibdzy.com/api.php/provide/vod
+飘零|https://p2100.net/api.php/provide/vod
+最大|http://zuidazy.me/api.php/provide/vod
+
+# ========== 常见资源站 ==========
+虎牙|https://www.huyaapi.com/api.php/provide/vod
+新浪|https://api.xinlangapi.com/xinlangapi.php/provide/vod
+火狐|https://hhzyapi.com/api.php/provide/vod
+速播|https://subocaiji.com/api.php/provide/vod
+极速|https://jszyapi.com/api.php/provide/vod
+非凡|https://api.ffzyapi.com/api.php/provide/vod
+量子|https://cj.lziapi.com/api.php/provide/vod
+量子资源|https://cj.lzcaiji.com/api.php/provide/vod
+暴风|https://bfzyapi.com/api.php/provide/vod
+红牛|https://www.hongniuzy2.com/api.php/provide/vod
+飞速|https://www.feisuzyapi.com/api.php/provide/vod
+快看|https://www.kuaikan-api.com/api.php/provide/vod
+金鹰|https://jyzyapi.com/provide/vod
+闪电|https://xsd.sdzyapi.com/api.php/provide/vod
+索尼|https://suoniapi.com/api.php/provide/vod
+茅台|https://caiji.maotaizy.cc/api.php/provide/vod
+牛牛|https://api.niuniuzy.me/api.php/provide/vod
+鸭鸭|https://cj.yayazy.net/api.php/provide/vod
+如意|https://cj.rycjapi.com/api.php/provide/vod
+卧龙|https://collect.wolongzyw.com/api.php/provide/vod
+天堂|http://caiji.dyttzyapi.com/api.php/provide/vod
+360资源|https://360zyzz.com/api.php/provide/vod
+光速|http://api.guangsuapi.com/api.php/provide/vod
+ikun|https://ikunzyapi.com/api.php/provide/vod
+U酷|https://api.ukuapi.com/api.php/provide/vod
+四九|https://49zyw.com/api.php/provide/vod
+快车|https://caiji.kczyapi.com/api.php/provide/vod
+奇虎|https://caiji.qhzyapi.com/api.php/provide/vod
+樱花|https://m3u8.apiyhzy.com/api.php/provide/vod
+华为吧|https://hw8.live/api.php/provide/vod
+小黄人|https://iqyi.xiaohuangrentv.com/api.php/provide/vod
+丫丫|https://cj.yayazy.net/api.php/provide/vod
+魔都资源|https://www.mdzyapi.com/api.php/provide/vod
+黑木耳|https://json.heimuer.xyz/api.php/provide/vod
+业余|https://yyff.540734621.xyz/api.php/provide/vod
+熊掌|https://xzcjz.com/api.php/provide/vod
+爱奇艺|https://www.iqiyizyapi.com/api.php/provide/vod

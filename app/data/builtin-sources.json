@@ -1,0 +1,99 @@
+{
+  "name": "tjtv 内置源",
+  "version": 2,
+  "updated": "2026-09-20",
+  "note": "本文件由 scripts/sync_builtin.py 从巡检结果同步而来。收录的是近期实测能搜到内容且能拿到 m3u8 直链的采集站。源会失效，建议定期重跑 scripts/auto_update.py 后再次同步。",
+  "sources": [
+    {
+      "name": "金鹰",
+      "url": "https://jyzyapi.com/provide/vod",
+      "key": "auto_1789901303_1",
+      "builtin": true
+    },
+    {
+      "name": "天堂",
+      "url": "http://caiji.dyttzyapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_2",
+      "builtin": true
+    },
+    {
+      "name": "360资源",
+      "url": "https://360zyzz.com/api.php/provide/vod",
+      "key": "auto_1789901303_3",
+      "builtin": true
+    },
+    {
+      "name": "红牛",
+      "url": "https://www.hongniuzy2.com/api.php/provide/vod",
+      "key": "auto_1789901303_4",
+      "builtin": true
+    },
+    {
+      "name": "虎牙",
+      "url": "https://www.huyaapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_5",
+      "builtin": true
+    },
+    {
+      "name": "火狐",
+      "url": "https://hhzyapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_6",
+      "builtin": true
+    },
+    {
+      "name": "光速",
+      "url": "http://api.guangsuapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_7",
+      "builtin": true
+    },
+    {
+      "name": "量子",
+      "url": "https://cj.lziapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_8",
+      "builtin": true
+    },
+    {
+      "name": "非凡",
+      "url": "https://api.ffzyapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_9",
+      "builtin": true
+    },
+    {
+      "name": "暴风",
+      "url": "https://bfzyapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_10",
+      "builtin": true
+    },
+    {
+      "name": "魔都",
+      "url": "https://caiji.moduapi.cc/api.php/provide/vod",
+      "key": "auto_1789901303_11",
+      "builtin": true
+    },
+    {
+      "name": "极速",
+      "url": "https://jszyapi.com/api.php/provide/vod",
+      "key": "auto_1789901303_12",
+      "builtin": true
+    },
+    {
+      "name": "速播",
+      "url": "https://subocaiji.com/api.php/provide/vod",
+      "key": "auto_1789901303_13",
+      "builtin": true
+    },
+    {
+      "name": "百度",
+      "url": "https://api.apibdzy.com/api.php/provide/vod",
+      "key": "auto_1789901303_14",
+      "builtin": true
+    },
+    {
+      "name": "新浪",
+      "url": "https://api.xinlangapi.com/xinlangapi.php/provide/vod",
+      "key": "auto_1789901303_15",
+      "builtin": true
+    }
+  ],
+  "liveSources": []
+}

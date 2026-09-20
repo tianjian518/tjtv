@@ -1,0 +1,57 @@
+services:
+  tjtv:
+    # ---- 镜像来源（三选一）----
+    #
+    # ① 预构建镜像（推荐，飞牛上直接拉）
+    image: ${TJTV_IMAGE:-tianjian518/tjtv:latest}
+    #
+    # ② GHCR 镜像（Docker Hub 拉不动时换这个）
+    # image: ghcr.io/tianjian518/tjtv:latest
+    #
+    # ③ 本地源码构建（改过代码后用；把上面 image 那行删掉，用下面 build）
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+
+    container_name: tjtv
+    restart: unless-stopped
+
+    ports:
+      # 左边是飞牛上访问的端口，可改；右边固定 8021（容器内服务端口）
+      - "8021:8021"
+
+    environment:
+      # ========== 必改 ==========
+      - PASSWORD=change-me          # 访问密码，改成你自己的
+
+      # ========== 自动巡检（容器内置，默认开启）==========
+      - AUTO_UPDATE=1               # 1=开启自动巡检，0=关闭
+      - AUTO_UPDATE_CRON=86400      # 巡检间隔（秒），86400=每天一次
+      - AUTO_UPDATE_TARGET=15       # 保持多少个可用源
+
+      # ========== 其他（一般不用改）==========
+      # - AUTO_UPDATE_AT=3          # 每天凌晨3点跑（需配合间隔删除，见文档）
+      # - PROXY_SECRET=xxx          # 多实例部署时设置，单实例不用
+      # - REQUEST_TIMEOUT=8000      # 上游请求超时（毫秒）
+      # - SEARCH_MAX_PAGES=5        # 每个源最多抓几页
+      # - LIVE_ALLOW_PRIVATE=1      # 内网自建 IPTV 源时开启
+
+    volumes:
+      # 【重要】源清单、巡检状态、日志都存这儿。
+      # 不挂载的话，容器重建后自建的源和巡检记录会丢。
+      # 飞牛上建议挂到：/vol1/1000/docker/tjtv
+      - ./data:/app/data
+
+    healthcheck:
+      # 容器内不装 curl，用镜像自带的 node 做探活
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8021/api/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

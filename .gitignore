@@ -1,0 +1,32 @@
+# 依赖
+node_modules/
+app/node_modules/
+
+# 构建产物
+.next/
+app/.next/
+out/
+app/out/
+*.tsbuildinfo
+
+# 本地环境
+.env
+.env*.local
+
+# 运行时数据（每人部署时各自生成，不入库）
+data/probe-state.json
+data/last-report.md
+data/auto-update.log
+app/data/tjtv-sources.json
+
+# 日志
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# AI 工具产物
+.codebuddy/
+.mimosa/
+.zcode/

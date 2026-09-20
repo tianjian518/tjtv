@@ -1,0 +1,34 @@
+# 顶层 .dockerignore
+#
+# 注意：本项目是「一个仓库、两个层面」：
+#   根目录   —— 部署层（Dockerfile / 编排 / 巡检脚本 / 文档），构建上下文在这里
+#   app/     —— 应用层（LibreTV 二次开发的 Next.js 工程）
+#
+# 所以下面的规则要保留 app/ 下的源码，只排除体积大、可再生的东西。
+
+# 依赖与构建产物（镜像内由 npm ci / next build 重新生成）
+app/node_modules
+app/.next
+app/out
+app/*.tsbuildinfo
+node_modules
+.next
+
+# 版本控制与 CI
+.git
+.gitignore
+.github
+
+# 本地数据（会被运行时挂载卷覆盖，不必打进镜像）
+data/probe-state.json
+data/last-report.md
+app/data/tjtv-sources.json
+
+# 本地环境与日志
+.env
+.env*.local
+*.log
+
+# 文档（不影响运行，减少镜像层）
+docs
+README.md
