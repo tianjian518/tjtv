@@ -96,16 +96,26 @@ export function PlayerShell({
     const hlsConfig: Partial<HlsConfig> = {
       debug: false,
       enableWorker: true,
-      backBufferLength: 90,
+      // 起播策略：挑最低清晰度开播。
+      // 这些采集源带宽普遍只有 1-2 Mbps，若按 -1 自动挑最高档，
+      // 首屏要等一大段高清分片下完（几秒到几十秒），观感就是"点了没反应"。
+      // 低清档通常几百 KB 就能开播，随后由 ABR 按实测带宽自动升档。
+      startLevel: 0,
+      // 缓冲保持 30s。实测压到 6s 会让 hls.js 卡在起播阶段反而不出画面——
+      // 「起播快」主要靠 startLevel:0 实现，这个值不要动。
       maxBufferLength: 30,
+      // 网速上来后允许缓冲增长到 60s，保证后续播放不断流
       maxMaxBufferLength: 60,
+      // 缓冲上限 30MB，避免小内存设备被吃爆
       maxBufferSize: 30 * 1000 * 1000,
+      // 单次可跳过的空档上限
       maxBufferHole: 0.5,
+      // 分片失败重试：6 次、间隔 0.8s
       fragLoadingMaxRetry: 6,
       fragLoadingRetryDelay: 1000,
       manifestLoadingMaxRetry: 3,
       manifestLoadingRetryDelay: 1000,
-      startLevel: -1,
+      // 起播带宽预估压到 500kbps：ABR 从最低档起步，不冒进挑高清
       abrEwmaDefaultEstimate: 500_000,
       appendErrorMaxRetry: 5,
     };
@@ -124,7 +134,26 @@ export function PlayerShell({
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        // 起播：先钉在最低档，保证最快出画面
+        if (hls.levels && hls.levels.length > 1) {
+          hls.currentLevel = 0;
+        }
         video.play().catch(() => {});
+      });
+
+      /**
+       * 起播后开启自动升档。
+       * 只钉住最低档看久了画质太糊，所以一旦真正播起来（有持续播放进度），
+       * 就交还给 ABR：由它按实测带宽决定升到哪一档，网好就升清，网差就守低清。
+       */
+      let switchedToAuto = false;
+      hls.on(Hls.Events.FRAG_BUFFERED, () => {
+        if (switchedToAuto || !hls.levels || hls.levels.length <= 1) return;
+        // 确认已经真的在播（而非卡在起播阶段），再放开自动档位
+        if (video.currentTime > 1 && !video.paused) {
+          switchedToAuto = true;
+          hls.currentLevel = -1; // -1 = 自动
+        }
       });
       hls.on(Hls.Events.ERROR, (_evt, data) => {
         errorCount++;

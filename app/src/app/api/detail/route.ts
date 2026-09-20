@@ -10,6 +10,18 @@ export const runtime = 'nodejs';
 /** 详情结果短缓存：换源测速/多人观看同一影片时避免重复打上游 */
 const DETAIL_CACHE_TTL = 60 * 1000;
 
+/**
+ * 上游详情请求超时。
+ * 采集源响应波动极大（实测同一源在 1.7s ~ 5.6s 之间跳），10s 太紧会偶发失败。
+ * 提到 15s 让慢响应也能等到；两段串行（列表接口 → 详情页）最坏 30s，
+ * 前端相应地要等得住，见 watch 页的加载态。
+ */
+const DETAIL_TIMEOUT_MS = (() => {
+  const n = parseInt(process.env.DETAIL_TIMEOUT_MS || '15000', 10);
+  if (!Number.isFinite(n)) return 15000;
+  return Math.min(60000, Math.max(5000, n));
+})();
+
 function parseSource(raw: string | null): SourceConfig | null {
   if (!raw) return null;
   try {
@@ -60,7 +72,7 @@ export async function GET(req: Request) {
 
     // 1) 标准列表接口
     const api = `${source.url.replace(/\/+$/, '')}?ac=videolist&ids=${encodeURIComponent(id)}`;
-    const res = await fetchUpstream(api, { timeoutMs: 10000, headers: cmsRequestHeaders() });
+    const res = await fetchUpstream(api, { timeoutMs: DETAIL_TIMEOUT_MS, headers: cmsRequestHeaders() });
     if (res.ok) {
       const data = await res.json();
       try {
@@ -83,7 +95,7 @@ export async function GET(req: Request) {
       }
       const detailUrl = `${detailRoot}/index.php/vod/detail/id/${id}.html`;
       const detailRes = await fetchUpstream(detailUrl, {
-        timeoutMs: 10000,
+        timeoutMs: DETAIL_TIMEOUT_MS,
         headers: { 'User-Agent': cmsRequestHeaders()['User-Agent'] },
       });
       if (detailRes.ok) {
