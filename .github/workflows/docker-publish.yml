@@ -13,10 +13,9 @@ name: build-and-push
 #   提供 ubuntu-24.04-arm），按 digest 推送后合并成 manifest list。
 #   不用 QEMU 跨架构模拟 —— 跑 npm ci / next build 极慢且容易崩。
 #
-# 首次使用需配置（仓库 Settings → Secrets and variables → Actions）：
-#   DOCKERHUB_USERNAME  你的 Docker Hub 用户名
+# 依赖的 secrets（仓库 Settings → Secrets and variables → Actions）：
+#   DOCKERHUB_USERNAME  Docker Hub 用户名
 #   DOCKERHUB_TOKEN     Docker Hub 访问令牌（Access Token，不是登录密码）
-#   不配也能跑，只是跳过 Docker Hub，仅推 GHCR。
 
 on:
   push:
@@ -25,8 +24,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: '镜像标签（留空则用 latest）'
-        required: false
+        description: '镜像标签'
+        required: true
         default: 'latest'
 
 permissions:
@@ -35,6 +34,8 @@ permissions:
 
 env:
   IMAGE_NAME: tjtv
+  DOCKERHUB_IMAGE: tianjian518/tjtv
+  GHCR_IMAGE: ghcr.io/tianjian518/tjtv
 
 jobs:
   # ---------- 1) 构建前校验：类型检查不过就不推镜像 ----------
@@ -78,7 +79,6 @@ jobs:
       - uses: docker/setup-buildx-action@v3
 
       - name: 登录 Docker Hub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -99,35 +99,28 @@ jobs:
           context: .
           file: ./Dockerfile
           platforms: ${{ matrix.platform }}
-          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.GHCR_IMAGE }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=ghcr-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=ghcr-${{ matrix.arch }}
 
-      - name: 记录 GHCR digest
-        run: |
-          mkdir -p /tmp/digests
-          echo "${{ steps.ghcr.outputs.digest }}" > /tmp/digests/ghcr-${{ matrix.arch }}.txt
-          cat /tmp/digests/ghcr-${{ matrix.arch }}.txt
-
-      # --- Docker Hub：按 digest 推送（未配置 secrets 则跳过）---
+      # --- Docker Hub：按 digest 推送 ---
       - name: 构建推送（Docker Hub / ${{ matrix.arch }}）
         id: dh
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           platforms: ${{ matrix.platform }}
-          outputs: type=image,name=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.DOCKERHUB_IMAGE }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=dh-${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=dh-${{ matrix.arch }}
 
-      - name: 记录 Docker Hub digest
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
+      - name: 记录 digest
         run: |
           mkdir -p /tmp/digests
-          echo "${{ steps.dh.outputs.digest }}" > /tmp/digests/dh-${{ matrix.arch }}.txt
-          cat /tmp/digests/dh-${{ matrix.arch }}.txt
+          echo "${{ steps.ghcr.outputs.digest }}" > /tmp/digests/ghcr-${{ matrix.arch }}.txt
+          echo "${{ steps.dh.outputs.digest }}"   > /tmp/digests/dh-${{ matrix.arch }}.txt
+          cat /tmp/digests/*.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -146,7 +139,7 @@ jobs:
           pattern: digest-*
           merge-multiple: true
 
-      - name: 查看收到的 digest
+      - name: 收到的 digest
         run: ls -la /tmp/digests/ && cat /tmp/digests/*.txt
 
       - uses: docker/setup-buildx-action@v3
@@ -158,12 +151,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 登录 Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: 解析标签
         id: tag
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             T="${{ github.event.inputs.tag }}"
-            [ -z "$T" ] && T="latest"
           else
             T="${{ github.ref_name }}"
           fi
@@ -172,41 +170,35 @@ jobs:
 
       - name: 合并发布（GHCR）
         run: |
-          IMG="ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}"
           docker buildx imagetools create \
-            -t "${IMG}:${{ steps.tag.outputs.value }}" \
-            -t "${IMG}:latest" \
-            "${IMG}@$(cat /tmp/digests/ghcr-amd64.txt)" \
-            "${IMG}@$(cat /tmp/digests/ghcr-arm64.txt)"
-          echo "--- 合并结果 ---"
-          docker buildx imagetools inspect "${IMG}:${{ steps.tag.outputs.value }}"
-
-      - name: 登录 Docker Hub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+            -t "${{ env.GHCR_IMAGE }}:${{ steps.tag.outputs.value }}" \
+            -t "${{ env.GHCR_IMAGE }}:latest" \
+            "${{ env.GHCR_IMAGE }}@$(cat /tmp/digests/ghcr-amd64.txt)" \
+            "${{ env.GHCR_IMAGE }}@$(cat /tmp/digests/ghcr-arm64.txt)"
+          echo "--- GHCR 合并结果 ---"
+          docker buildx imagetools inspect "${{ env.GHCR_IMAGE }}:${{ steps.tag.outputs.value }}"
 
       - name: 合并发布（Docker Hub）
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
         run: |
-          IMG="${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}"
           docker buildx imagetools create \
-            -t "${IMG}:${{ steps.tag.outputs.value }}" \
-            -t "${IMG}:latest" \
-            "${IMG}@$(cat /tmp/digests/dh-amd64.txt)" \
-            "${IMG}@$(cat /tmp/digests/dh-arm64.txt)"
-          echo "--- 合并结果 ---"
-          docker buildx imagetools inspect "${IMG}:${{ steps.tag.outputs.value }}"
+            -t "${{ env.DOCKERHUB_IMAGE }}:${{ steps.tag.outputs.value }}" \
+            -t "${{ env.DOCKERHUB_IMAGE }}:latest" \
+            "${{ env.DOCKERHUB_IMAGE }}@$(cat /tmp/digests/dh-amd64.txt)" \
+            "${{ env.DOCKERHUB_IMAGE }}@$(cat /tmp/digests/dh-arm64.txt)"
+          echo "--- Docker Hub 合并结果 ---"
+          docker buildx imagetools inspect "${{ env.DOCKERHUB_IMAGE }}:${{ steps.tag.outputs.value }}"
 
-      - name: 汇总
+      - name: 输出汇总
         run: |
-          echo "## 镜像已发布 :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| 仓库 | 地址 |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| GHCR | \`ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Hub | \`${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "支持架构：linux/amd64、linux/arm64" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 镜像已发布"
+            echo ""
+            echo "| 仓库 | 地址 |"
+            echo "|---|---|"
+            echo "| Docker Hub | \`${{ env.DOCKERHUB_IMAGE }}:${{ steps.tag.outputs.value }}\` |"
+            echo "| GHCR | \`${{ env.GHCR_IMAGE }}:${{ steps.tag.outputs.value }}\` |"
+            echo ""
+            echo "支持架构：linux/amd64、linux/arm64"
+            echo ""
+            echo "拉取：\`docker pull ${{ env.DOCKERHUB_IMAGE }}:${{ steps.tag.outputs.value }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
