@@ -44,13 +44,13 @@ mkdir -p /vol1/1000/docker/tjtv
 **方式 A：Docker Hub（最省事）**
 
 ```bash
-docker pull 你的用户名/tjtv:latest
+docker pull tianjian518/tjtv:latest
 ```
 
 **方式 B：GHCR（Docker Hub 拉不动时用）**
 
 ```bash
-docker pull ghcr.io/你的用户名/tjtv:latest
+docker pull ghcr.io/tianjian518/tjtv:latest
 ```
 
 **方式 C：本地构建**
@@ -83,7 +83,7 @@ docker build -t tjtv:latest .
 ```yaml
 services:
   tjtv:
-    image: 你的用户名/tjtv:latest     # ← 改成你的镜像地址
+    image: tianjian518/tjtv:latest
 
     container_name: tjtv
     restart: unless-stopped            # 容器自启，飞牛重启后自动拉起

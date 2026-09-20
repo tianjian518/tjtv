@@ -3,7 +3,29 @@
 影视聚合搜索与观看平台。**内置 15 个实测可用的源，开箱即用**；自带源自动巡检，挂了会自动补新的；同时提供源管理接口，随时增删源，不用改代码。
 
 > 基于 [LibreTV](https://github.com/LibreSpark/LibreTV)（AGPL-3.0）二次开发。
-> 改动内容：内置 15 个可用源、源自动巡检工具、服务端源管理接口与图形管理页、端口改 8021、单命令启动。
+> 改动内容：内置 15 个可用源、容器内置源自动巡检、服务端源管理接口与图形管理页、端口改 8021、多架构镜像。
+
+**仓库**：https://github.com/tianjian518/tjtv
+**镜像**：`tianjian518/tjtv`（Docker Hub） / `ghcr.io/tianjian518/tjtv`（GHCR）
+
+---
+
+## 飞牛上三步跑起来
+
+```bash
+# 1) 建目录
+mkdir -p /vol1/1000/docker/tjtv
+
+# 2) 用 Docker 面板新建容器，镜像填：
+tianjian518/tjtv:latest
+
+# 3) 关键配置
+端口映射：8021 → 8021
+目录挂载：/vol1/1000/docker/tjtv → /app/data    ← 必须挂
+环境变量：PASSWORD=你的密码
+```
+
+然后访问 `http://飞牛IP:8021`。
 
 ---
 
